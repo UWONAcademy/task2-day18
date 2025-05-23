@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 2 - Day 18</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #5cb1a6, #6dc1b5);
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 860px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .section-title {
+      font-size: 20px;
+      margin-top: 30px;
+      margin-bottom: 12px;
+      color: #34495e;
+      border-bottom: 2px solid #4caf91;
+      padding-bottom: 4px;
+    }
+    .question {
+      margin-bottom: 25px;
+    }
+    .english {
+      font-size: 16px;
+      margin-bottom: 6px;
+      line-height: 1.6;
+    }
+    .translation {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    input[type="text"] {
+      width: 140px;
+      padding: 6px;
+      margin: 0 3px;
+      font-size: 15px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+    }
+    .check-btn {
+      margin-top: 6px;
+      background: #4caf91;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .feedback {
+      margin-top: 6px;
+      font-weight: bold;
+    }
+    .correct { color: green; }
+    .incorrect { color: red; }
+    @media (max-width: 600px) {
+      input[type="text"] {
+        width: 100px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Task 2 - Day 18</h2>
+
+    <div class="section-title">一. 句子填空（Personality - Nature or Nurture）</div>
+
+    <div id="q1" class="question"></div>
+    <div id="q2" class="question"></div>
+    <div id="q3" class="question"></div>
+    <div id="q4" class="question"></div>
+  </div>
+
+  <script>
+    const sentences = [
+      {
+        id: "s1",
+        text: "Some people believe that our personalities are determined mainly by genetics, and research, relating to identical twins, has highlighted how significant inherited characteristics can be for an individual’s life.",
+        translation: "有些人认为我们性格主要由遗传决定，对双胞胎的研究强调了遗传特性的影响力。",
+        containerId: "q1"
+      },
+      {
+        id: "s2",
+        text: "Innate talent is what differentiates a person who has been trained to play a sport or an instrument, from those who become good players. In other words, there is more to the skill than a learned technique, and this extra talent cannot be taught, no matter how good the teacher is or how frequently the student practices.",
+        translation: "天赋决定了训练者与真正优秀者的区别，这些额外的才能无法被教会，无论老师多好或学生多努力。",
+        containerId: "q2"
+      },
+      {
+        id: "s3",
+        text: "There are many reasons why people argue that we control our own destinies. (1) We can shape our own personalities. (2) By working hard we can achieve the goal that we put our minds to. (3) Many successful people are “self-made”.",
+        translation: "我们可以掌控自己的命运：塑造性格、努力实现目标，很多成功人士是靠自己。",
+        containerId: "q3"
+      },
+      {
+        id: "s4",
+        text: "The traits that we inherit from our parents and the experiences that we encounter in life are constantly interacting. It is the interaction of the two that shapes a person's personality and dictates how that personality develops.",
+        translation: "我们继承的特性与经历不断相互作用，这种互动塑造了性格并影响发展方向。",
+        containerId: "q4"
+      }
+    ];
+
+    function getRandomIndexes(array, min = 5, max = 7) {
+      const count = Math.min(Math.floor(Math.random() * (max - min + 1)) + min, array.length);
+      const set = new Set();
+      while (set.size < count) {
+        const i = Math.floor(Math.random() * array.length);
+        const word = array[i].replace(/[.,()"]/g, '');
+        if (word.length > 2 && !word.includes("'")) set.add(i);
+      }
+      return Array.from(set);
+    }
+
+    function renderSentence({ id, text, translation, containerId }) {
+      const words = text.split(" ");
+      const blanks = getRandomIndexes(words);
+      const answers = {};
+      const html = words.map((word, i) => {
+        const clean = word.replace(/[.,()"]/g, "");
+        const punct = word.match(/[.,()"]$/) ? word.slice(-1) : "";
+        if (blanks.includes(i)) {
+          const inputId = `${id}_${i}`;
+          answers[inputId] = clean.toLowerCase();
+          return `<input type="text" id="${inputId}" placeholder="...">${punct}`;
+        }
+        return word;
+      }).join(" ");
+      document.getElementById(containerId).innerHTML = `
+        <div class="english">${html}</div>
+        <div class="translation">${translation}</div>
+        <button class="check-btn" onclick='checkSentence("${id}", ${JSON.stringify(answers)})'>Check</button>
+        <div class="feedback" id="fb_${id}"></div>
+      `;
+    }
+
+    function checkSentence(id, answers) {
+      const feedback = document.getElementById("fb_" + id);
+      let correct = true;
+      for (const [inputId, expected] of Object.entries(answers)) {
+        const val = document.getElementById(inputId).value.trim().toLowerCase();
+        if (val !== expected) correct = false;
+      }
+      feedback.innerHTML = correct
+        ? "<span class='correct'>✔ 正确！</span>"
+        : `<span class='incorrect'>✘ 有错误</span> 正确答案：${Object.values(answers).join(" / ")}`;
+    }
+
+    // 初始化所有句子
+    sentences.forEach(renderSentence);
+  </script>
+</body>
+</html>
